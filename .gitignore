@@ -1,0 +1,8 @@
+*.o
+*.swp
+.vimsess
+meta/*
+test.c
+a.out
+*.bak
+Park
