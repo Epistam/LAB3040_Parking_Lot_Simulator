@@ -4,12 +4,13 @@
 #include <sys/ioctl.h>
 #include <unistd.h> // For STDIN_FILENO
 #include <sys/ioctl.h> // For term interaction / sending flags to it 
+#include "include/term.h"
 
-int main(int argc, *char[] argv) {
-	
-	term_init();
+void map_load(char *mapfile_path, char **map) {
+	FILE *f_pointer = fopen(mapfile_path, "r");
 
-	
+}
 
-	return EXIT_SUCCESS;
+void map_display(char **map) {
+
 }

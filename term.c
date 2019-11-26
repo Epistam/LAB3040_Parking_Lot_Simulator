@@ -5,7 +5,6 @@
 #include <unistd.h> // For STDIN_FILENO
 #include <sys/ioctl.h> // For term interaction / sending flags to it 
 #include "include/term.h"
-#include "include/interface.h"
 
 // Save original termios configuration
 struct termios orig_termios;
