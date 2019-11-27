@@ -3,5 +3,7 @@
 
 void map_load(char *mapfile_path, char **map);
 void map_display(char **map);
+char** map_init(Vect_2di_t *map_size);
+Vect_2di_t* map_getsize(char *mapfile_path);
 
 #endif
