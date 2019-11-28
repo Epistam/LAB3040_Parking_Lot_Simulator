@@ -8,13 +8,13 @@
 typedef struct winsize Winsize;
 
 // Whole terminal / screen routines
-void termClear();
-void updateTermSize(Winsize *ws);
-void initTerm();
-void resetTerm();
+void term_clear();
+void term_size_update(Winsize *ws);
+void term_init();
+void term_reset();
 
 // Single line
-void termClearLine();
+void term_clearline();
 
 // Cursor movement 
 void termUp();
@@ -24,8 +24,8 @@ void termBack();
 void termGoto(int x, int y);
 
 // Cursor color
-void reset_colors();
-void set_color(int color); 
-void set_bg_color(int color);
+void term_color_reset();
+void term_fgcolorset(int color);
+void term_bgcolorset(int color);
 
 #endif
