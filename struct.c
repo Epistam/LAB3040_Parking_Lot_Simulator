@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "include/const.h"
 #include "include/struct.h"
 
 // Create a vector and initialize it from two integer values

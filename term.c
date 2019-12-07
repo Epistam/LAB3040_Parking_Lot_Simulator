@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <locale.h>
 #include <termios.h> // Terminal attributes
 #include <sys/ioctl.h>
 #include <unistd.h> // For STDIN_FILENO
@@ -35,6 +36,14 @@ void term_init() {
 	raw.c_lflag &= ~(ECHO | ICANON);
 	// "commit" new attributes to shell
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+	// Disable output buffer 
+	// setvbuf(stdout, NULL, _IONBF, 0);
+	//setlocale(LC_ALL, "ISO-8859-1");
+//	if(setlocale(LC_ALL, "fr_FR.iso88591") == NULL) {
+//		puts("Failed to set locale");
+//		exit(1);
+//	}
+
 }
 
 void term_reset() {
@@ -42,7 +51,7 @@ void term_reset() {
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
 	// Restoring cursor
 	fputs("\033[?25h",stdout);
-	term_clear(); // TODO uncomment after debugging is done
+	//term_clear(); // TODO uncomment after debugging is done
 }
 
 // Single line
@@ -53,7 +62,7 @@ void termUp() { printf("\033\[1A");}
 void termDown() { printf("\033\[1B");}
 void termFwd() { printf("\033\[1C");}
 void termBack() { printf("\033\[1D");}
-void termGoto(int x, int y) { printf("\033[%d;%dH", y, x);} // some fucking how coords are inverted in the term codes
+void termGoto(int x, int y) { printf("\033[%d;%dH", y+1, x+1);} // some fucking how coords are inverted in the escape seqs, and indexed on 1
 
 // Cursor color
 void term_color_reset() {

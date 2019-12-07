@@ -8,4 +8,6 @@ typedef struct Vect_2di {
 
 Vect_2di_t* vect_2di_init(int x, int y);
 
+typedef enum {up, right, down, left} Orientation;
+
 #endif

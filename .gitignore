@@ -1,8 +1,10 @@
 *.o
 *.swp
 .vimsess
+*.vimsess
 meta/*
 test.c
 a.out
 *.bak
-Park
+parking
+parking.log

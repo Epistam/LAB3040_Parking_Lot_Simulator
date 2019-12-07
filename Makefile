@@ -1,7 +1,7 @@
 # Compiler settings
 CC=gcc
 CFLAGS=-Wall -O2 #-fdiagnostics-color=always gcc >=4.9 -std=c18 -O3 -Wextra -Wpedantic
-LDFLAGS=-lm
+#LDFLAGS=-lm
 
 # Source and objects settings
 
