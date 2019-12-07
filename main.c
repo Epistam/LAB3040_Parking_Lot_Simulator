@@ -4,9 +4,7 @@
 #include <termios.h> // Terminal attributes
 #include <unistd.h> // For STDIN_FILENO
 #include <sys/ioctl.h> // For term interaction / sending flags to it 
-#include <sys/types.h> 
 #include <sys/signal.h> 
-#include <sys/select.h> 
 #include "include/const.h"
 #include "include/struct.h"
 #include "include/term.h"
@@ -91,14 +89,15 @@ int main(int argc, char *argv[]) {
 			
 			if(sel_buf == 0) poll_cont = 0; // Timed out, no fd updated : go for next frame
 			else if(sel_buf == 1) { // Keypress detected, stdin updated
-				read(STDIN_FILENO, &c, 1); // Read input and empty the buffer
-				puts("\t\tKeystroke detected !"); // TODO DEBUG
-				/* 
-					TODO process input
-				*/
-				if(c == 'q') {
-					fputc(c, stdout);
-					cont = 0; 
+				while(read(STDIN_FILENO, &c, 1) == 1) { // Read input and empty the buffer (takes into account wide chars)
+					puts("\t\tKeystroke detected !"); // TODO DEBUG
+					/* 
+						TODO process input
+					*/
+					if(c == 'q') {
+						fputc(c, stdout);
+						cont = 0; 
+					}
 				}
 				// Update elapsed time and timeout for next iteration
 				clock_gettime(CLOCK_MONOTONIC, &current_time);

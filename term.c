@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <termios.h> // Terminal attributes
-#include <sys/ioctl.h>
 #include <unistd.h> // For STDIN_FILENO
 #include <sys/ioctl.h> // For term interaction / sending flags to it 
+#include <fcntl.h> // For STDIN_FILENO
 #include "include/term.h"
 
 // Save original termios configuration
@@ -36,8 +36,12 @@ void term_init() {
 	raw.c_lflag &= ~(ECHO | ICANON);
 	// "commit" new attributes to shell
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+	// Make the read calls non blocking
+	int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+	fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+	
 	// Disable output buffer 
-	// setvbuf(stdout, NULL, _IONBF, 0);
+	//setvbuf(stdout, NULL, _IONBF, 0);
 	//setlocale(LC_ALL, "ISO-8859-1");
 //	if(setlocale(LC_ALL, "fr_FR.iso88591") == NULL) {
 //		puts("Failed to set locale");
