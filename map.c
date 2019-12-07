@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h> // Terminal attributes
-#include <sys/ioctl.h>
 #include <unistd.h> // For STDIN_FILENO
 #include <sys/ioctl.h> // For term interaction / sending flags to it 
 #include "include/term.h"
 #include "include/const.h"
 #include "include/struct.h"
+#include "include/car.h"
 #include "include/map.h"
 
 char** map_init(Vect_2di_t *map_size) {
@@ -65,7 +65,7 @@ void map_load(char *mapfile_path, char **map) {
 // - DONE fix le délire de l'affichage caché + x/y size
 // - DONE récupérer winsize et définir un coin de référence, drop le \n
 // - gérer les doubles char pour fillup l'espace
-void map_display(char **map, Vect_2di_t* map_size) {
+void map_display(char **map, Car_t* car_list, Vect_2di_t* map_size) {
 
 	int col,lin;
 	for(lin = 0 ; lin < map_size->y ; lin++) {

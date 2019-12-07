@@ -9,7 +9,10 @@ typedef struct Car Car_t;
 
 struct Car {
 	unsigned int id;
-	char** models; // Each body corresponds to an orientation and a string is used to avoid problems when rotating the model
+	// Each body corresponds to an orientation and 
+	// a string is used to avoid problems when rotating 
+	// the model;
+	char** models; 
 	char orientation;
 	Vect_2di_t* pos;
 	int speed;
@@ -28,8 +31,9 @@ unsigned int car_newid(Car_t* car_file);
 
 Car_t* car_init(int orientation, Vect_2di_t* pos, int speed, int color, Car_t* car_file);
 
-// Spawn a car into the car list with given initial conditions and return its id + display it
-int spawn_car(Car_t *car_list, Vect_2di_t* pos, int color);
+// Spawn a car into the car list with given initial 
+// conditions and return its id + display it
+int spawn_car(char** map, Car_t *car_list, Vect_2di_t* pos, int color);
 
 // Delete car from the car list
 void car_delete(int car_id, Car_t* car_list);

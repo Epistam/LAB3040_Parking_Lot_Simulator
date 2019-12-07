@@ -10,4 +10,7 @@
 
 #define LOGFILE "parking.log"
 
+#define FPS_MIN 0.1 // The nanoseconds field of the time structs will overflow at 2.14s
+#define FPS_MAX 40.0
+
 #endif

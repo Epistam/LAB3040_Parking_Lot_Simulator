@@ -3,7 +3,6 @@
 #include <string.h>
 #include <time.h> // For debugging purposes
 #include <termios.h> // Terminal attributes
-#include <sys/ioctl.h>
 #include <unistd.h> // For STDIN_FILENO
 #include <sys/ioctl.h> // For term interaction / sending flags to it 
 #include "include/term.h"
@@ -84,7 +83,7 @@ void car_debug(Car_t* car) {
 	// Debugging start
 	fprintf(fd, "Car ID : %d\n", car->id);
 	fprintf(fd, "\tModels : \n");
-	int i,j,k; 
+	int i,j;
 	for(i = 0 ; i < 4 ; i++) {
 		fprintf(fd, "\t\tFacing direction %d :\n", i);
 
