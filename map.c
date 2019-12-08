@@ -9,6 +9,8 @@
 #include "include/car.h"
 #include "include/map.h"
 
+// TODO bug : last line is not displayed or loaded or allocated
+
 char** map_init(Vect_2di_t *map_size) {
 	int i;
 	char** map = malloc((map_size->y)*sizeof(char*));
@@ -16,6 +18,16 @@ char** map_init(Vect_2di_t *map_size) {
 	for(i = 0 ; i < map_size->y ; i++) map[i] = malloc((map_size->x)*sizeof(char));
 
 	return map;
+}
+
+void map_set(char **map, char value, Vect_2di_t* map_size) {
+	int lin,col;
+	for(lin = 0 ; lin < map_size->y ; lin++) for(col = 0 ; col < map_size->x ; col++) map[lin][col] = value;
+}
+
+void map_copy(char **map_orig, char** map_dest, Vect_2di_t *map_size) {
+	int lin,col;
+	for(lin = 0 ; lin < map_size->y ; lin++) for(col = 0 ; col < map_size->x ; col++) map_dest[lin][col] = map_orig[lin][col];
 }
 
 Vect_2di_t* map_getsize(char *mapfile_path) { // todo use readline at some point
@@ -61,22 +73,19 @@ void map_load(char *mapfile_path, char **map) {
 	fclose(f_pointer);
 }
 
-// TODO : 
-// - DONE fix le délire de l'affichage caché + x/y size
-// - DONE récupérer winsize et définir un coin de référence, drop le \n
-// - gérer les doubles char pour fillup l'espace
-void map_display(char **map, Car_t* car_list, Vect_2di_t* map_size) {
+// TODO : rework pour prendre en compte toutes les maps
+void map_display_debug(char **map, Car_t* car_list, Vect_2di_t* map_size) {
 
 	int col,lin;
 	for(lin = 0 ; lin < map_size->y ; lin++) {
 		termGoto(0,lin); // Line number is actually the y axis
 		for(col = 0 ; col < map_size->x ; col++) {
-			if(map[lin][col] == ' ') {
-				termFwd();
-				termFwd();
-			}
-			else {
-				if(map[lin][col] == 'O') { // Si T horizontal, identifier sur barre à droite ou à gauche pour sélectionner si espace de droite ou espace de gauche
+//			if(map[lin][col] == ' ') {
+//				termFwd();
+//				termFwd();
+//			}
+//			else {
+				if(map[lin][col] == '#') { // Si T horizontal, identifier sur barre à droite ou à gauche pour sélectionner si espace de droite ou espace de gauche
 					printf("\u2588"); // Use only ASCII on map so the alignment is correct on the intermdiate table, but display unicode
 					printf("\u2588");
 				}
@@ -84,7 +93,7 @@ void map_display(char **map, Car_t* car_list, Vect_2di_t* map_size) {
 					printf("%c",map[lin][col]);
 					printf("%c",map[lin][col]);
 				}
-			}
+//			}
 		}
 	}
 }

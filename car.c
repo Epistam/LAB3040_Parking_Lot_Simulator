@@ -42,7 +42,7 @@ char* car_load_body(char *model_filepath) {
 		return car_model;
 }
 
-Car_t* car_init(int orientation, Vect_2di_t* pos, int speed, int color, Car_t* car_file) {
+Car_t* car_init(int orientation, Vect_2di_t* pos, int speed, int color, Car_t** car_list) {
 	
 	// Initialize the model paths from the constants
 	char** car_model_paths = malloc(4*sizeof(char*));
@@ -58,7 +58,7 @@ Car_t* car_init(int orientation, Vect_2di_t* pos, int speed, int color, Car_t* c
 	
 	// Filling up the struct
 	Car_t* car = malloc(sizeof(Car_t));
-	// TODO id
+	// TODO find ID from car_list
 	car->models = car_models;
 	car->orientation = orientation;
 	car->pos = pos;
@@ -66,6 +66,15 @@ Car_t* car_init(int orientation, Vect_2di_t* pos, int speed, int color, Car_t* c
 	car->elapsed_time = 0;
 	car->color = color;
 	car->next_car = NULL;
+	
+	// Add to car_list
+	if(*car_list == NULL) { // If car_list is null, then the current car becomes the first link of the chain
+		*car_list = car;
+	} else { // If not, we parse through all of the chain to attach it to the last link
+		Car_t* car_buf = *car_list;
+		while(car_buf->next_car != NULL) car_buf = car_buf->next_car;
+		car_buf->next_car = car;
+	}
 
 	return car;
 }
@@ -116,3 +125,164 @@ void car_debug(Car_t* car) {
 
 	fclose(fd);
 }
+
+int car_spawn(Car_t** car_list, char **map, char **fg_colormap, Vect_2di_t* pos, int color, int orientation) {
+
+	int lin, col;
+
+	// Takes car of struct allocation and car_list updating
+	Car_t* car = car_init(orientation, pos, 1, color, car_list);
+	
+	// Update the maps
+	switch(car->orientation) {
+		case 0:  // TODO test this first
+			for(lin = 0 ; lin < CAR_LENGTH ; lin++) for(col = 0 ; col < CAR_WIDTH ; col++) {
+				map[lin+car->pos->y - 1][col+car->pos->x - 1] = 'C';
+				fg_colormap[lin+car->pos->y - 1][col+car->pos->x - 1] = car->color;
+			}
+			break;
+		case 1: 
+			for(lin = 0 ; lin < CAR_WIDTH ; lin++) for(col = 0 ; col < CAR_LENGTH ; col++) {
+				map[lin+car->pos->y - 1][col+car->pos->x - 1] = 'C';
+			}
+			break;
+		case 2: 
+			for(lin = 0 ; lin < CAR_LENGTH ; lin++) for(col = 0 ; col < CAR_WIDTH ; col++) {
+				map[lin+car->pos->y - 2][col+car->pos->x - 1] = 'C';
+			}
+			break;
+		case 3: 
+			for(lin = 0 ; lin < CAR_WIDTH ; lin++) for(col = 0 ; col < CAR_LENGTH ; col++) {
+					map[lin+car->pos->y - 1][col+car->pos->x - 2] = 'C';
+			}
+			break;
+	}
+	// Mark the center of the car for debugging purposes
+	map[car->pos->y][car->pos->x] = '0';
+
+
+	return car->id;	
+}
+
+// TODO function to delete something from the list
+
+void car_commit(char** map, char** fg_colormap, Car_t* car) { // Commit a car to the maps
+	int col, lin;
+	// Update the maps
+	switch(car->orientation) {
+		case 0:  // TODO test this first
+			for(lin = 0 ; lin < CAR_LENGTH ; lin++) for(col = 0 ; col < CAR_WIDTH ; col++) {
+				map[lin+car->pos->y - 1][col+car->pos->x - 1] = 'C';
+				fg_colormap[lin+car->pos->y - 1][col+car->pos->x - 1] = car->color;
+			}
+			break;
+		case 1: 
+			for(lin = 0 ; lin < CAR_WIDTH ; lin++) for(col = 0 ; col < CAR_LENGTH ; col++) {
+				map[lin+car->pos->y - 1][col+car->pos->x - 2] = 'C';
+				fg_colormap[lin+car->pos->y - 1][col+car->pos->x - 2] = car->color;
+			}
+			break;
+		case 2: 
+			for(lin = 0 ; lin < CAR_LENGTH ; lin++) for(col = 0 ; col < CAR_WIDTH ; col++) {
+				map[lin+car->pos->y - 2][col+car->pos->x - 1] = 'C';
+				fg_colormap[lin+car->pos->y - 2][col+car->pos->x - 1] = car->color;
+			}
+			break;
+		case 3: 
+			for(lin = 0 ; lin < CAR_WIDTH ; lin++) for(col = 0 ; col < CAR_LENGTH ; col++) {
+				map[lin+car->pos->y - 1][col+car->pos->x - 1] = 'C';
+				fg_colormap[lin+car->pos->y - 1][col+car->pos->x - 1] = car->color;
+			}
+			break;
+	}
+	// Mark the center of the car for debugging purposes
+	map[car->pos->y][car->pos->x] = '0';
+}
+void car_remove(char** orig_map, char** map, char** fg_colormap, Car_t* car) { // Remove a car from the maps
+	int lin, col;
+	// Update the maps
+	switch(car->orientation) {
+		case 0:  // TODO test this first
+			for(lin = 0 ; lin < CAR_LENGTH ; lin++) for(col = 0 ; col < CAR_WIDTH ; col++) {
+				// Reset original map
+				map[lin+car->pos->y - 1][col+car->pos->x - 1] = orig_map[lin+car->pos->y - 1][col+car->pos->x - 1];
+				// Reset to default color
+				fg_colormap[lin+car->pos->y - 1][col+car->pos->x - 1] = 15;
+			}
+			break;
+		case 1: 
+			for(lin = 0 ; lin < CAR_WIDTH ; lin++) for(col = 0 ; col < CAR_LENGTH ; col++) {
+				map[lin+car->pos->y - 1][col+car->pos->x - 2] = orig_map[lin+car->pos->y - 1][col+car->pos->x - 2];
+				fg_colormap[lin+car->pos->y - 1][col+car->pos->x - 2] = 15;
+			}
+			break;
+		case 2: 
+			for(lin = 0 ; lin < CAR_LENGTH ; lin++) for(col = 0 ; col < CAR_WIDTH ; col++) {
+				map[lin+car->pos->y - 2][col+car->pos->x - 1] = orig_map[lin+car->pos->y - 2][col+car->pos->x - 1];
+				fg_colormap[lin+car->pos->y - 2][col+car->pos->x - 1] = 15;
+			}
+			break;
+		case 3: 
+			for(lin = 0 ; lin < CAR_WIDTH ; lin++) for(col = 0 ; col < CAR_LENGTH ; col++) {
+				map[lin+car->pos->y - 1][col+car->pos->x - 1] = orig_map[lin+car->pos->y - 1][col+car->pos->x - 1];
+				fg_colormap[lin+car->pos->y - 1][col+car->pos->x - 1] = 15;
+			}
+			break;
+	}
+}
+
+void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car) { // Single atomic step for a single car
+	// Start out by removing the old car
+	car_remove(orig_map, map, fg_colormap, car); 
+
+	// TODO handle intersections and disappearances (rabouter la liste dans ce cas)
+	// TODO fucked up map oreintation
+	char next_orr;
+	switch(car->orientation) {
+		case 0: 
+			if((next_orr = orig_map[car->pos->y-1][car->pos->x]) == 'W') car->orientation = 3;
+			if((next_orr = orig_map[car->pos->y-1][car->pos->x]) == 'E') car->orientation = 1;
+			car->pos->y -= 1; // Keep going no matter what, but depending on next cell, orientation might change
+			break;
+		case 1: 
+			if((next_orr = orig_map[car->pos->y][car->pos->x+1]) == 'N') car->orientation = 0;
+			if((next_orr = orig_map[car->pos->y][car->pos->x+1]) == 'S') car->orientation = 2;
+			car->pos->x += 1;
+			break;
+		case 2: 
+			if((next_orr = orig_map[car->pos->y+1][car->pos->x]) == 'E') car->orientation = 1;
+			if((next_orr = orig_map[car->pos->y+1][car->pos->x]) == 'W') car->orientation = 3;
+			car->pos->y += 1;
+			break;
+		case 3: 
+			if((next_orr = orig_map[car->pos->y][car->pos->x-1]) == 'S') car->orientation = 2;
+			if((next_orr = orig_map[car->pos->y][car->pos->x-1]) == 'N') car->orientation = 0;
+			car->pos->x -= 1;
+			break;
+	}
+
+	car->elapsed_time++;
+
+	car_commit(map, fg_colormap, car);
+	
+}
+
+void cars_update(char **orig_map, char** map, char **fg_colormap, Car_t** car_list) { // interpolate steps with speed to skip steps, and this for eveyr car
+	if(*car_list != NULL) { // If car_list is empty, there's nothing to update
+		Car_t *current_car = *car_list; 
+		
+		int i;
+		while(current_car->next_car != NULL) {
+			// Skip as many steps as speed, and update the car itself and its location in the map
+			car_debug(current_car);
+			for(i = 0 ; i < current_car->speed ; i++) car_step(orig_map, map, fg_colormap, current_car); 
+			current_car = current_car->next_car;
+		}
+		// Last car with next_car == NULL
+		car_debug(current_car);
+		for(i = 0 ; i < current_car->speed ; i++) car_step(orig_map, map, fg_colormap, current_car); 
+	}
+}
+
+// TODO make all cars go
+// fix aligment problems with east and west

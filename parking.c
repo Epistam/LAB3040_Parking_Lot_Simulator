@@ -21,7 +21,6 @@ void diff_timespec(struct timespec *a, struct timespec *b, struct timespec *resu
 	result->tv_nsec = buf_result%1000000000;
 }
 
-
 int parking_loop() { // Event loop : returns a code depending on how it was exited
 
 	// Terminal handling
@@ -42,15 +41,41 @@ int parking_loop() { // Event loop : returns a code depending on how it was exit
 	struct timespec timeout_duration; // Next pselect's timeout, e.g frame_duration - time_elapsed, relative
 	
 	// "global" variables
-	double fps = 1; // Number of game frames calculated per second (starting at 1)
+	double fps = 2; // Number of game frames calculated per second (starting at 1)
 	int cont = 1, poll_cont;  // Boolean flags for main loop and polling loop
 	int sel_buf; // pselect's retval buffer
 	char c; // Keystroke buffer
 
 	// TODO initialize the game level
-	/*
-		Game level intialization
-	*/
+	Vect_2di_t *map_size = map_getsize("assets/map.txt");
+
+	char** orig_map = map_init(map_size); 
+	char** current_map = map_init(map_size); 
+	char** current_fgcolormap = map_init(map_size); 
+	char** current_bgcolormap = map_init(map_size); 
+
+	char** next_map = map_init(map_size); 
+	char** next_fgcolormap = map_init(map_size); 
+	char** next_bgcolormap = map_init(map_size); 
+
+	map_load("assets/map.txt", orig_map);
+	map_copy(orig_map, current_map, map_size);
+	map_copy(orig_map, next_map, map_size);
+
+	map_set(current_fgcolormap, 15, map_size);
+	map_set(next_fgcolormap, 15, map_size);
+	
+	map_set(current_bgcolormap, 0, map_size);
+	map_set(next_bgcolormap, 0, map_size);
+	
+
+	// TODO debug
+	Car_t* car_list = NULL; // Pointer on the car_list pointer (so that it can be set to null by other functions)
+	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(29,33), 9, 2);
+	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(39,30), 9, 0);
+	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(34,23), 9, 3);
+	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(23,17), 9, 1);
+	map_display_debug(current_map, NULL, map_size);
 
 	// Main event loop, keeps refreshing the game state every so often
 	while(cont) {
@@ -66,16 +91,10 @@ int parking_loop() { // Event loop : returns a code depending on how it was exit
 		 	// Resize the display if needed
 			// Display the map / update things and all
 		*/
-//	Vect_2di_t *map_size = map_getsize("maaaap.txt");
-//
-//	char** map = map_init(map_size);
-//	map_load("maaaap.txt", map);
-//	
-//	// Display array size
-//	//printf("%d,%d\n",map_size->x,map_size->y);
-//	
-//	map_display(map, map_size);
-//
+		// Temporary, will move to delta buffer afterwards (TODO)
+		cars_update(orig_map, current_map, current_fgcolormap, &car_list); // interpolate steps with speed to skip steps, and this for eveyr car
+		map_display_debug(current_map, NULL, map_size);
+
 //	// Map buffer à remplir avec la nouvelle map et faire les modifs dessus, puis commit sur l'ancienne après affcichage
 //
 //	/////////////////////////////////////////////:
@@ -91,8 +110,15 @@ int parking_loop() { // Event loop : returns a code depending on how it was exit
 		// Poll keystrokes
 		poll_cont = 1;
 		while(poll_cont) { 
-			diff_timespec(&frame_duration, &time_elapsed, &timeout_duration); // timeout_duration = frame_duration - time_elapsed
+			// Refresh status bar
+			
+			//cars_refresh(); // Refresh the cars on map
+			//lights_refresh();
 
+			//status_update(); // Update the status bar
+			
+			// Compute timeout duration
+			diff_timespec(&frame_duration, &time_elapsed, &timeout_duration); // timeout_duration = frame_duration - time_elapsed
 			FD_ZERO(&set); // Reset the FD set
 			FD_SET(STDIN_FILENO, &set); // Add stdin to the FD set (needs to be done before every pselect call
 			sel_buf = pselect(STDIN_FILENO+1, &set, NULL, NULL, &timeout_duration, &sig_mask);

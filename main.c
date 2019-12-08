@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 	
 	int cont = 1;
 	int menu_option;
-	
+	/*
 	while(cont) { 
 		menu_option = menu_loop();
 
@@ -41,7 +41,8 @@ int main(int argc, char *argv[]) {
 		}
 
 	}
-
+	*/
+	parking_loop();
 
 
 

@@ -35,3 +35,41 @@ Cars are a specific matter, since the "doubling" needs to be done in a certain w
 
 
 status bar struct : pass info to it and refresh its display
+
+
+2 maps system 
+loop time stuff
+
+3rd map : color map
+
+
+stop for a while while paying
+
+"threads" for each car in the process of parking
+
+only spawn a car if the car staging area is free
+
+
+convergence : check les options possibles (case du haut "S" impossible à prendre par exemple)
+
+
+file de voitures "onpark" avec leurs ids et l'étape dans le garage
+
+
+ralentir en voyant les virages loin
+
+struct car : state : arriving or departing or parked
+when parked : car background green, and parking place red otherwise
+
+
+update lights routine with specific chars for lights : update if a car is directly next to it cuz roads are 5 wide
+
+keep representation of cars in map to handle collisions, but car movement will be processed invidually
+
+
+
+car_update : when in staging area, accelerate in a given direction
+
+
+
+dynamic headlamps ? :D 
