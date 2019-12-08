@@ -21,7 +21,7 @@ void termUp();
 void termDown();
 void termFwd();
 void termBack();
-void termGoto(int x, int y);
+void term_goto(int x, int y);
 
 // Cursor color
 void term_color_reset();

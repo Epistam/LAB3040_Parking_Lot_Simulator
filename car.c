@@ -9,6 +9,7 @@
 #include "include/const.h"
 #include "include/struct.h"
 #include "include/car.h"
+#include "include/map.h"
 
 // use orientation on display and map buffer integraiton
 
@@ -149,7 +150,7 @@ void car_spawn(Car_t** car_list, char **map, char **fg_colormap, Vect_2di_t* pos
 			break;
 		case 1: 
 			for(lin = 0 ; lin < CAR_WIDTH ; lin++) for(col = 0 ; col < CAR_LENGTH ; col++) {
-				map[lin+car->pos->y - 1][col+car->pos->x - 1] = 'C';
+				map[lin+car->pos->y - 1][col+car->pos->x - 2] = 'C';
 			}
 			break;
 		case 2: 
@@ -159,7 +160,7 @@ void car_spawn(Car_t** car_list, char **map, char **fg_colormap, Vect_2di_t* pos
 			break;
 		case 3: 
 			for(lin = 0 ; lin < CAR_WIDTH ; lin++) for(col = 0 ; col < CAR_LENGTH ; col++) {
-					map[lin+car->pos->y - 1][col+car->pos->x - 2] = 'C';
+					map[lin+car->pos->y - 1][col+car->pos->x - 1] = 'C';
 			}
 			break;
 	}
@@ -477,7 +478,7 @@ void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car, Car_t
 	if(car->status == 3) car_unpark(map, orig_map, car);
 	
 	// Car getting out (must be last)
-	if(current_cell != 'Q') car_commit(map, fg_colormap, car);
+	if(current_cell != 'O') car_commit(map, fg_colormap, car);
 	else {
 		if(car->prev_car == NULL && car->next_car == NULL) *car_list = NULL; // If car is the first and last car in the list
 		else if(car->prev_car == NULL && car->next_car != NULL) {
@@ -626,7 +627,7 @@ char car_wheretopark(char** map, Car_t* car) {
 	return 0;
 }
 
-void cars_update(char **orig_map, char** map, char **fg_colormap, Car_t** car_list) { // interpolate steps with speed to skip steps, and this for eveyr car
+void cars_update(char **orig_map, char** map, char **fg_colormap, Car_t** car_list, Vect_2di_t* map_size) { // interpolate steps with speed to skip steps, and this for eveyr car
 	if(*car_list != NULL) { // If car_list is empty, there's nothing to update
 		Car_t *current_car = *car_list; 
 		
@@ -638,5 +639,53 @@ void cars_update(char **orig_map, char** map, char **fg_colormap, Car_t** car_li
 			for(i = 0 ; i < current_car->speed ; i++) car_step(orig_map, map, fg_colormap, current_car, car_list); 
 			if(current_car != NULL) current_car = current_car->next_car;
 		}
+		//car_spawner(orig_map, map, fg_colormap, car_list, map_size); // Try to spawn a car
+		if(!(rand()%SPAWN_CHANCE)) car_spawn(car_list, map, fg_colormap, vect_2di_init(53,37), 9, 3); // Just works(tm)
+	}
+}
+
+// Non functionnal, TODO debug
+void car_spawner(char** orig_map, char** map, char** fg_colormap, Car_t** car_list, Vect_2di_t* map_size) {
+	FILE* log = fopen("log.log", "a");
+
+	Vect_2di_t* spawn_point = map_get_spawnpoint(map, map_size);
+
+	fprintf(log,"%d, %d\n", spawn_point->x, spawn_point->y);
+
+	char* neighbors = malloc(4*sizeof(char));
+	neighbors[0] = map[spawn_point->y][spawn_point->x-1]; 
+	neighbors[1] = map[spawn_point->y-1][spawn_point->x];
+	neighbors[2] = map[spawn_point->y][spawn_point->x+1];
+	neighbors[3] = map[spawn_point->y+1][spawn_point->x];
+
+	int i;
+	for(; neighbors[i] == ' '; i++) ;
+
+	fprintf(log,"%c",neighbors[i]);
+
+
+
+
+	
+	int orientation;
+	switch(neighbors[i]) {
+		case 'N': 
+			orientation = 0;
+			break;
+		case 'E': 
+			orientation = 1;
+			break;
+		case 'S': 
+			orientation = 2;
+			break;
+		case 'W': 
+			orientation = 3;
+			break;
+	}
+	fprintf(log,"orientation :%d\n",orientation);
+	fprintf(log,"END\n");
+	fclose(log);
+	if(!(rand()%SPAWN_CHANCE)) {
+		car_spawn(car_list, map, fg_colormap, spawn_point, rand()%256, 3); 
 	}
 }

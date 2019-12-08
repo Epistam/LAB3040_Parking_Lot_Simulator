@@ -5,6 +5,7 @@
 #include <unistd.h> // For STDIN_FILENO
 #include <sys/ioctl.h> // For term interaction / sending flags to it 
 #include <sys/signal.h> 
+#include <fcntl.h> 
 #include "include/const.h"
 #include "include/struct.h"
 #include "include/term.h"
@@ -25,15 +26,18 @@ int main(int argc, char *argv[]) {
 	
 	int cont = 1;
 	int menu_option;
-	/*
+	
 	while(cont) { 
+		int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+		fcntl(STDIN_FILENO, F_SETFL, flags & ~O_NONBLOCK); // Make read blocking again 
 		menu_option = menu_loop();
+		term_clear();
 
 		switch(menu_option) {
-			case 42: 
+			case 2: 
 				cont = 0;
 				break;
-			case 69:
+			case 0:
 				parking_loop(); // TODO recover return value
 				break;
 				
@@ -41,11 +45,7 @@ int main(int argc, char *argv[]) {
 		}
 
 	}
-	*/
-	parking_loop();
-
-
-
+	
 
 	return EXIT_SUCCESS;
 }

@@ -61,8 +61,9 @@ void car_move(Car_t* car);
 void car_commit(char** map, char** fg_colormap, Car_t* car);
 void car_remove(char** orig_map, char** map, char** fg_colormap, Car_t* car);
 void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car, Car_t** car_list);
-void cars_update(char **orig_map, char** map, char **fg_colormap, Car_t** car_list);
+void cars_update(char **orig_map, char** map, char **fg_colormap, Car_t** car_list, Vect_2di_t* map_size);
 
+void car_spawner(char** orig_map, char** map, char** fg_colormap, Car_t** car_list, Vect_2di_t* map_size);
 //void car_refresh_maps(old map, new map); // TODO
 //void car_refresh_display(old map, new map); // Prints and erases -> on map
 

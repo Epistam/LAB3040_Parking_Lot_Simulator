@@ -15,7 +15,7 @@
 #  N  ##L###L###L####L###L###L####L###L###L##  S  ######                                             
 #  N                                           S                                                     
 #  N                                           S                                                     
-#  XEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEYEEEEEEEQ                                             
+#  XEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEYEEEEEEEO                                             
 #  N                                                                                                 
 #  N                                                                                                 
 #  N  ##################################################                                             
@@ -35,7 +35,7 @@
 #  N  #####  S  #####  N  #  S  #####  N  #   #   ######                                             
 #  N         S         N     S         N                                                             
 #  N         S         N     S         N                                                             
-#  NWWWWWWWWWW         NWWWWWW         NWWWWPWWWWWWWWWWW                                             
+#  NWWWWWWWWWW         NWWWWWW         NWWWWPWWWWWWWWIWW                                             
 #                                                                                                    
 #                                                                                                    
 ########################################################                                             

@@ -78,7 +78,7 @@ void map_display_debug(char **map, Car_t* car_list, Vect_2di_t* map_size) {
 
 	int col,lin;
 	for(lin = 0 ; lin < map_size->y ; lin++) {
-		termGoto(0,lin); // Line number is actually the y axis
+		term_goto(0,lin); // Line number is actually the y axis
 		for(col = 0 ; col < map_size->x ; col++) {
 //			if(map[lin][col] == ' ') {
 //				termFwd();
@@ -89,6 +89,15 @@ void map_display_debug(char **map, Car_t* car_list, Vect_2di_t* map_size) {
 					printf("\u2588"); // Use only ASCII on map so the alignment is correct on the intermdiate table, but display unicode
 					printf("\u2588");
 				}
+				else if(map[lin][col] == 'N') printf("  ");
+				else if(map[lin][col] == 'E') printf("  ");
+				else if(map[lin][col] == 'S') printf("  ");
+				else if(map[lin][col] == 'W') printf("  ");
+				else if(map[lin][col] == 'P') printf("  ");
+				else if(map[lin][col] == 'I') printf("  ");
+				else if(map[lin][col] == 'O') printf("  ");
+				else if(map[lin][col] == 'X') printf("  ");
+				else if(map[lin][col] == 'Y') printf("  ");
 				else {
 					printf("%c",map[lin][col]);
 					printf("%c",map[lin][col]);
@@ -96,4 +105,18 @@ void map_display_debug(char **map, Car_t* car_list, Vect_2di_t* map_size) {
 //			}
 		}
 	}
+}
+
+
+Vect_2di_t* map_get_spawnpoint(char **map, Vect_2di_t* map_size) {
+
+	int col,lin;
+	for(lin = 0 ; lin < map_size->y ; lin++) {
+		term_goto(0,lin); // Line number is actually the y axis
+		for(col = 0 ; col < map_size->x ; col++) {
+			if(map[lin][col] == 'I') return vect_2di_init(col,lin);
+		}
+	}
+
+	return NULL;
 }

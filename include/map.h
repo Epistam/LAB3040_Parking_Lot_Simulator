@@ -17,4 +17,6 @@ void map_display_debug(char **map, Car_t* car_list, Vect_2di_t* map_size);
 
 void map_display(char **map, char** fg_colormap, char **bg_colormap, Car_t* car_list, Vect_2di_t* map_size);
 
+Vect_2di_t* map_get_spawnpoint(char **map, Vect_2di_t* map_size);
+
 #endif

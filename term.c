@@ -4,7 +4,7 @@
 #include <termios.h> // Terminal attributes
 #include <unistd.h> // For STDIN_FILENO
 #include <sys/ioctl.h> // For term interaction / sending flags to it 
-#include <fcntl.h> // For STDIN_FILENO
+#include <fcntl.h> 
 #include "include/term.h"
 
 // Save original termios configuration
@@ -37,11 +37,11 @@ void term_init() {
 	// "commit" new attributes to shell
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 	// Make the read calls non blocking
-	int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-	fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+
+
 	
 	// Disable output buffer 
-	//setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stdout, NULL, _IONBF, 0);
 	//setlocale(LC_ALL, "ISO-8859-1");
 //	if(setlocale(LC_ALL, "fr_FR.iso88591") == NULL) {
 //		puts("Failed to set locale");
@@ -66,7 +66,7 @@ void termUp() { printf("\033\[1A");}
 void termDown() { printf("\033\[1B");}
 void termFwd() { printf("\033\[1C");}
 void termBack() { printf("\033\[1D");}
-void termGoto(int x, int y) { printf("\033[%d;%dH", y+1, x+1);} // some fucking how coords are inverted in the escape seqs, and indexed on 1
+void term_goto(int x, int y) { printf("\033[%d;%dH", y+1, x+1);} // some fucking how coords are inverted in the escape seqs, and indexed on 1
 
 // Cursor color
 void term_color_reset() {

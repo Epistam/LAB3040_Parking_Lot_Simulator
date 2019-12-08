@@ -5,6 +5,7 @@
 #include <unistd.h> // For STDIN_FILENO
 #include <sys/ioctl.h> // For term interaction / sending flags to it 
 #include <sys/signal.h> 
+#include <fcntl.h> 
 #include "include/const.h"
 #include "include/struct.h"
 #include "include/term.h"
@@ -26,6 +27,8 @@ void parking_loop() { // Event loop : returns a code depending on how it was exi
 	// Terminal handling
 	term_clear();
 	winsize_t ws;
+	int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+	fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK); // Switch read to non blocking
 
 	// Random generator intialization
 	srand(time(NULL));
@@ -80,7 +83,6 @@ void parking_loop() { // Event loop : returns a code depending on how it was exi
 	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(36,23), 9, 3);
 	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(40,17), 9, 1);
 	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(47,12), 9, 2);
-	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(23,33), 9, 0);
 	map_display_debug(current_map, NULL, map_size);
 
 	// Main event loop, keeps refreshing the game state every so often
@@ -108,10 +110,12 @@ void parking_loop() { // Event loop : returns a code depending on how it was exi
 			car_debug(current_car);
 			current_car = current_car->next_car;
 		}
+
+
 		// Last car with next_car == NULL
 		///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		cars_update(orig_map, current_map, current_fgcolormap, &car_list); // interpolate steps with speed to skip steps, and this for eveyr car
+		cars_update(orig_map, current_map, current_fgcolormap, &car_list, map_size); // interpolate steps with speed to skip steps, and this for eveyr car
 		map_display_debug(current_map, NULL, map_size);
 
 //	// Map buffer à remplir avec la nouvelle map et faire les modifs dessus, puis commit sur l'ancienne après affcichage
