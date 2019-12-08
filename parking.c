@@ -21,7 +21,7 @@ void diff_timespec(struct timespec *a, struct timespec *b, struct timespec *resu
 	result->tv_nsec = buf_result%1000000000;
 }
 
-int parking_loop() { // Event loop : returns a code depending on how it was exited
+void parking_loop() { // Event loop : returns a code depending on how it was exited
 
 	// Terminal handling
 	term_clear();
@@ -76,9 +76,11 @@ int parking_loop() { // Event loop : returns a code depending on how it was exit
 	Car_t* car_list = NULL; // Pointer on the car_list pointer (so that it can be set to null by other functions)
 	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(29,33), 9, 2);
 	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(39,30), 9, 0);
-	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(34,23), 9, 3);
+	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(32,23), 9, 3);
+	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(36,23), 9, 3);
 	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(40,17), 9, 1);
 	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(47,12), 9, 2);
+	car_spawn(&car_list, current_map, current_fgcolormap, vect_2di_init(23,33), 9, 0);
 	map_display_debug(current_map, NULL, map_size);
 
 	// Main event loop, keeps refreshing the game state every so often

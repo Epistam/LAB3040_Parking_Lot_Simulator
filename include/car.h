@@ -8,7 +8,6 @@
 typedef struct Car Car_t;
 
 struct Car {
-	unsigned int id;
 	// Each body corresponds to an orientation and 
 	// a string is used to avoid problems when rotating 
 	// the model;
@@ -19,12 +18,20 @@ struct Car {
 	// char type;
 	int color; // Shell codes based color
 	int elapsed_time;
-	int status;
+	int status; // 0 : searching, 1 : parking, 2 : parked, 3 : unparking, 4 : exiting
+	char park_target;
 	int animation_step;
 	int is_totalled; // Boolean for collisions
 	Car_t* prev_car;
 	Car_t* next_car;
 };
+
+void car_park(char** map, Car_t* car);
+
+char car_wheretopark(char **map, Car_t* car);
+
+void car_goahead(Car_t* car);
+void car_goback(Car_t* car);
 
 void car_debug(Car_t* car);
 
@@ -39,7 +46,7 @@ Car_t* car_init(int orientation, Vect_2di_t* pos, int speed, int color, Car_t** 
 
 // Spawn a car into the car list with given initial 
 // conditions and return its id + display it
-int car_spawn(Car_t* *car_list, char** map, char **fg_colormap, Vect_2di_t* pos, int color, int orientation);
+void car_spawn(Car_t* *car_list, char** map, char **fg_colormap, Vect_2di_t* pos, int color, int orientation);
 
 // Delete car from the car list
 void car_delete(int car_id, Car_t** car_list);

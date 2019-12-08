@@ -5,7 +5,7 @@
 #     #   #   #   ##   #   #   ##   #   #   #######                                                  
 #                                                 #                                                  
 #                                                 #                                                  
-#  EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEES  #                                                  
+#  EEEEEPEEEPEEEPEEEEPEEEPEEEPEEEEPEEEPEEEPEEEES  #                                                  
 #  N                                           S  #                                                  
 #  N                                           S  #                                                  
 #  N  #   #   #   ##   #   #   ##   #   #   #  S  #                                                  
@@ -26,16 +26,16 @@
 #  N         S         N     S         N          #                                                  
 #  N  #####  S  #####  N  #  S  #####  N  #####   #                                                  
 #  N  #      S  #      N  #  S  #      N  #   #   #                                                  
-#  N  L      S  L      N  #  S  L      N  #   #   #                                                  
+#  N  L      P  L      P  #  S  L      P  #   #   #                                                  
 #  N  #      S  #      N  #  S  #      N  #   #   #                                                  
 #  N  #####  S  #####  N  #  S  #####  N  ##L##   #                                                  
 #  N  #      S      #  N  #  S  #      N  #   #   #                                                  
-#  N  L      S      L  N  #  S  L      N  #   #   #                                                  
+#  N  L      P      L  N  #  S  L      P  #   #   #                                                  
 #  N  #      S      #  N  #  S  #      N  #   #   #                                                  
 #  N  #####  S  #####  N  #  S  #####  N  #   #   ######                                             
 #  N         S         N     S         N                                                             
 #  N         S         N     S         N                                                             
-#  NWWWWWWWWWW         NWWWWWW         NWWWWWWWWWWWWWWWW                                             
+#  NWWWWWWWWWW         NWWWWWW         NWWWWPWWWWWWWWWWW                                             
 #                                                                                                    
 #                                                                                                    
 ########################################################                                             

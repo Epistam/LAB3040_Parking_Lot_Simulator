@@ -58,12 +58,12 @@ Car_t* car_init(int orientation, Vect_2di_t* pos, int speed, int color, Car_t** 
 	
 	// Filling up the struct
 	Car_t* car = malloc(sizeof(Car_t));
-	// TODO find ID from car_list
 	car->models = car_models;
 	car->orientation = orientation;
 	car->pos = pos;
 	car->speed = speed;
 	car->elapsed_time = 0;
+	car->status = 0;
 	car->color = color;
 	car->next_car = NULL;
 	
@@ -94,7 +94,6 @@ void car_debug(Car_t* car) {
 	time(&now);
 	fprintf(fd, "Datetime : %s", ctime(&now));
 	// Debugging start
-	fprintf(fd, "Car ID : %d\n", car->id);
 	fprintf(fd, "\tModels : \n");
 	int i,j;
 	for(i = 0 ; i < 4 ; i++) {
@@ -124,16 +123,16 @@ void car_debug(Car_t* car) {
 	fprintf(fd, "\tColor : %d\n", car->color);
 	fprintf(fd, "\tTime in parking : %d\n", car->elapsed_time);
 	fprintf(fd, "\tPrevious car ID : ");
-	if(car->prev_car == NULL) fprintf(fd, "NULL\n");
-	else fprintf(fd, "\t%d\n", car->prev_car->id);
+	if(car->prev_car == NULL) fprintf(fd, "Has NO prev car\n");
+	else fprintf(fd, "Has prev car\n");
 	fprintf(fd, "\tNext car ID : ");
-	if(car->next_car == NULL) fprintf(fd, "NULL\n");
-	else fprintf(fd, "\t%d\n", car->next_car->id);
+	if(car->next_car == NULL) fprintf(fd, "Has NO next car\n");
+	else fprintf(fd, "Has next car\n");
 
 	fclose(fd);
 }
 
-int car_spawn(Car_t** car_list, char **map, char **fg_colormap, Vect_2di_t* pos, int color, int orientation) {
+void car_spawn(Car_t** car_list, char **map, char **fg_colormap, Vect_2di_t* pos, int color, int orientation) {
 
 	int lin, col;
 
@@ -168,7 +167,6 @@ int car_spawn(Car_t** car_list, char **map, char **fg_colormap, Vect_2di_t* pos,
 	map[car->pos->y][car->pos->x] = '0';
 
 
-	return car->id;	
 }
 
 // TODO function to delete something from the list
@@ -243,7 +241,7 @@ int car_ahead(char **map, Car_t* car) {
 	int lin,col;
 
 
-	switch(car->orientation) {
+/*	switch(car->orientation) { // CAN CAUSE DEADLOCK 
 		case 0: 
 			for(lin = 0 ; lin < CAR_LENGTH ; lin++) {
 				for(col = 0 ; col < CAR_WIDTH + 2 ; col++) {
@@ -281,121 +279,203 @@ int car_ahead(char **map, Car_t* car) {
 				}
 			}
 			break;
+	}*/
+
+
+	switch(car->orientation) {
+		case 0: 
+			for(lin = 0 ; lin < CAR_LENGTH ; lin++) {
+				for(col = 0 ; col < CAR_WIDTH ; col++) {
+					fwd_cell = map[lin+car->pos->y - 5][col+car->pos->x - 1];
+
+					if(fwd_cell == 'C' || fwd_cell == '0') return 1;
+				}
+			}
+
+			break;
+		case 1: 
+			for(lin = 0 ; lin < CAR_WIDTH  ; lin++) {
+				for(col = 0 ; col < CAR_LENGTH ; col++) {
+					fwd_cell = map[lin+car->pos->y - 1][col+car->pos->x + 3];
+					if(fwd_cell == 'C' || fwd_cell == '0') return 1;
+				}
+			}
+			break;
+		case 2: 
+
+			for(lin = 0 ; lin < CAR_LENGTH ; lin++) {
+				for(col = 0 ; col < CAR_WIDTH ; col++) {
+					fwd_cell = map[lin+car->pos->y + 3][col+car->pos->x - 1];
+					if(fwd_cell == 'C' || fwd_cell == '0') return 1;
+				}
+			}
+
+			break;
+
+		case 3: 
+			for(lin = 0 ; lin < CAR_WIDTH ; lin++) { 
+				for(col = 0 ; col < CAR_LENGTH ; col++) {
+					fwd_cell = map[lin+car->pos->y - 1][col+car->pos->x - 5];
+					if(fwd_cell == 'C' || fwd_cell == '0') return 1;
+				}
+			}
+			break;
 	}
 
 	return 0;
+}
+
+void car_goahead(Car_t* car) {
+	switch(car->orientation) {
+		case 0: 
+			car->pos->y -= 1;
+			break;
+		case 1: 
+			car->pos->x += 1;
+			break;
+		case 2: 
+			car->pos->y += 1;
+			break;
+		case 3: 
+			car->pos->x -= 1;
+			break;
+	}
+}
+void car_goback(Car_t* car) {
+	switch(car->orientation) {
+		case 0: 
+			car->pos->y += 1;
+			break;
+		case 1: 
+			car->pos->x -= 1;
+			break;
+		case 2: 
+			car->pos->y -= 1;
+			break;
+		case 3: 
+			car->pos->x += 1;
+			break;
+	}
 }
 
 void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car, Car_t** car_list) { // Single atomic step for a single car
 	// Start out by removing the old car
 	car_remove(orig_map, map, fg_colormap, car); 
 
-	// TODO handle intersections and disappearances (rabouter la liste dans ce cas)
-	// TODO fucked up map oreintation
 	char current_cell;
-	char fwd_cell;
-	switch(car->orientation) {
-		case 0: 
-			current_cell = orig_map[car->pos->y-1][car->pos->x];
-			// Check for turns
-			if(current_cell == 'W') car->orientation = 3;
-			if(current_cell == 'E') car->orientation = 1;
-			car->pos->y -= 1; // Keep going no matter what, but depending on next cell, orientation might change
-			if(car->orientation == 1) car->pos->x += 1;
-			if(car->orientation == 3) car->pos->x -= 1;
+	if(car->status == 0 || car->status == 4) {
+		switch(car->orientation) {
+			case 0: 
+				current_cell = orig_map[car->pos->y-1][car->pos->x];
+				// Check for turns
+				if(current_cell == 'W') car->orientation = 3;
+				if(current_cell == 'E') car->orientation = 1;
+				car->pos->y -= 1; // Keep going no matter what, but depending on next cell, orientation might change
+				if(car->orientation == 1) car->pos->x += 1;
+				if(car->orientation == 3) car->pos->x -= 1;
 
-			// Check ahead to avoid collisions
-			if(car_ahead(map, car)) car->speed = 0;
-			else car->speed = 1;
+				// Check ahead to avoid collisions
+				if(car_ahead(map, car)) car->speed = 0;
+				else car->speed = 1;
 
-			break;
-		case 1: 
-			current_cell = orig_map[car->pos->y][car->pos->x+1];
-			if(current_cell == 'N') car->orientation = 0;
-			if(current_cell == 'S') car->orientation = 2;
-			car->pos->x += 1;
-			if(car->orientation == 0) car->pos->y -= 1;
-			if(car->orientation == 2) car->pos->y += 1;
+				break;
+			case 1: 
+				current_cell = orig_map[car->pos->y][car->pos->x+1];
+				if(current_cell == 'N') car->orientation = 0;
+				if(current_cell == 'S') car->orientation = 2;
+				car->pos->x += 1;
+				if(car->orientation == 0) car->pos->y -= 1;
+				if(car->orientation == 2) car->pos->y += 1;
 
-			// Check ahead to avoid collisions
-			if(car_ahead(map, car)) car->speed = 0;
-			else car->speed = 1;
+				// Check ahead to avoid collisions
+				if(car_ahead(map, car)) car->speed = 0;
+				else car->speed = 1;
 
-			break;
-		case 2: 
-			current_cell = orig_map[car->pos->y+1][car->pos->x];
-			if(current_cell == 'E') car->orientation = 1;
-			if(current_cell == 'W') car->orientation = 3;
-			car->pos->y += 1;
-			if(car->orientation == 1) car->pos->x += 1;
-			if(car->orientation == 3) car->pos->x -= 1;
+				break;
+			case 2: 
+				current_cell = orig_map[car->pos->y+1][car->pos->x];
+				if(current_cell == 'E') car->orientation = 1;
+				if(current_cell == 'W') car->orientation = 3;
+				car->pos->y += 1;
+				if(car->orientation == 1) car->pos->x += 1;
+				if(car->orientation == 3) car->pos->x -= 1;
 
-			// Check ahead to avoid collisions
-			if(car_ahead(map, car)) car->speed = 0;
-			else car->speed = 1;
+				// Check ahead to avoid collisions
+				if(car_ahead(map, car)) car->speed = 0;
+				else car->speed = 1;
 
-			break;
-		case 3: 
-			current_cell = map[car->pos->y][car->pos->x-1];
-			if(current_cell == 'S') car->orientation = 2;
-			if(current_cell == 'N') car->orientation = 0;
-			car->pos->x -= 1;
-			if(car->orientation == 0) car->pos->y -= 1;
-			if(car->orientation == 2) car->pos->y += 1;
+				break;
+			case 3: 
+				current_cell = orig_map[car->pos->y][car->pos->x-1];
+				if(current_cell == 'S') car->orientation = 2;
+				if(current_cell == 'N') car->orientation = 0;
+				car->pos->x -= 1;
+				if(car->orientation == 0) car->pos->y -= 1;
+				if(car->orientation == 2) car->pos->y += 1;
 
-			// Check ahead to avoid collisions
-			if(car_ahead(map, car)) car->speed = 0;
-			else car->speed = 1;
+				// Check ahead to avoid collisions
+				if(car_ahead(map, car)) car->speed = 0;
+				else car->speed = 1;
 
-			break;
-		default: 
-			current_cell = 0; // Leave me alone gcc :'(
+				break;
+			default: 
+				current_cell = 0; // Leave me alone gcc :'(
+
+		}
+		// Handling special cells
+		if(current_cell == 'X' || current_cell == 'Y') { // Divergence and convergence
+			// Create a list of available options
+			int i=0;
+			char* available_options = malloc(3*sizeof(char)); // On ne peut pas avoir plus de 3 chemins partant d'un noeud
+			if(orig_map[car->pos->y-1][car->pos->x] == 'N') {
+				available_options[i] = 'N';
+				i++;
+			}
+			if(orig_map[car->pos->y][car->pos->x+1] == 'E') {
+				available_options[i] = 'E';
+				i++;
+			}
+			if(orig_map[car->pos->y+1][car->pos->x] == 'S') {
+				available_options[i] = 'S';
+				i++;
+			}
+			if(orig_map[car->pos->y][car->pos->x-1] == 'W') {
+				available_options[i] = 'W';
+				i++;
+			}
+
+			// Choose a random direction among available ones
+			char choice = available_options[rand()%i];
+			if(choice == 'N') {
+				if(car->orientation != 0) car->pos->y -= 1;
+				car->orientation = 0;
+			}
+			if(choice == 'E') {
+				if(car->orientation != 1) car->pos->x += 1;
+				car->orientation = 1;
+			}
+			if(choice == 'S') {
+				if(car->orientation != 2) car->pos->y += 1;
+				car->orientation = 2;
+			}
+			if(choice == 'W') {
+				if(car->orientation != 3) car->pos->x -= 1;
+				car->orientation = 3;
+			}
+		}
+
+		// Engage parking animation
+		if(orig_map[car->pos->y][car->pos->x] == 'P' && (car->park_target = car_wheretopark(map, car)) != 0) {
+			car->status = 1;
+			car->animation_step = 0;
+			// place C barrier (not even necessary in the end)
+		}
 	}
 
-	// Handling special cells
-	if(current_cell == 'X' || current_cell == 'Y') { // Divergence and convergence
-		// Create a list of available options
-		int i=0;
-		char* available_options = malloc(3*sizeof(char)); // On ne peut pas avoir plus de 3 chemins partant d'un noeud
-		if(orig_map[car->pos->y-1][car->pos->x] == 'N') {
-			available_options[i] = 'N';
-			i++;
-		}
-		if(orig_map[car->pos->y][car->pos->x+1] == 'E') {
-			available_options[i] = 'E';
-			i++;
-		}
-		if(orig_map[car->pos->y+1][car->pos->x] == 'S') {
-			available_options[i] = 'S';
-			i++;
-		}
-		if(orig_map[car->pos->y][car->pos->x-1] == 'W') {
-			available_options[i] = 'W';
-			i++;
-		}
-
-		// Choose a random direction among available ones
-		char choice = available_options[rand()%i];
-		if(choice == 'N') {
-			if(car->orientation != 0) car->pos->y -= 1;
-			car->orientation = 0;
-		}
-		if(choice == 'E') {
-			if(car->orientation != 1) car->pos->x += 1;
-			car->orientation = 1;
-		}
-		if(choice == 'S') {
-			if(car->orientation != 2) car->pos->y += 1;
-			car->orientation = 2;
-		}
-		if(choice == 'W') {
-			if(car->orientation != 3) car->pos->x -= 1;
-			car->orientation = 3;
-		}
-	}
-
-
-
+	// Car parking once engaged in aniamtion
+	if(car->status == 1) car_park(map, car);
+	
+	// Car getting out (must be last)
 	if(current_cell != 'Q') car_commit(map, fg_colormap, car);
 	else {
 		if(car->prev_car == NULL && car->next_car == NULL) *car_list = NULL; // If car is the first and last car in the list
@@ -410,6 +490,72 @@ void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car, Car_t
 		}
 		car = NULL;
 	}
+
+}
+
+void car_park(char **map, Car_t* car) {
+		switch(car->animation_step) {
+			case 1:
+				car_goahead(car);
+				break;
+			case 2:
+				car_goahead(car);
+				break;
+			case 3:
+				car_goahead(car);
+				break;
+			case 4:
+				car_goback(car);
+				break;
+			case 5:
+				car_goback(car);
+				break;
+			case 6:
+				car_goback(car);
+				if(car->park_target == 'R') car->orientation = (car->orientation+4-1)%4;
+				else car->orientation = (car->orientation+4+1)%4;
+				car_goback(car);
+				break;
+			case 7:
+				car_goback(car);
+				break;
+			case 8:
+				car_goback(car);
+				break;
+			case 9:
+				car_goback(car);
+				break;
+			case 10:
+				car->animation_step = 0;
+				car->status = 2;
+				break;
+		}
+		car->animation_step += 1;
+
+}
+
+char car_wheretopark(char** map, Car_t* car) {
+
+	switch(car->orientation) {
+		case 0: 
+			// On repère la lampe
+			if(map[car->pos->y][car->pos->x-3] != 'C' && map[car->pos->y][car->pos->x-7] == 'L') return 'L';
+			if(map[car->pos->y][car->pos->x+3] != 'C' && map[car->pos->y][car->pos->x+7] == 'L') return 'R';
+			break;
+		case 1: 
+			if(map[car->pos->y-3][car->pos->x] != 'C' && map[car->pos->y-7][car->pos->x] == 'L') return 'L';
+			if(map[car->pos->y+3][car->pos->x] != 'C' && map[car->pos->y+7][car->pos->x] == 'L') return 'R';
+			break;
+		case 2: 
+			if(map[car->pos->y][car->pos->x+3] != 'C' && map[car->pos->y][car->pos->x+7] == 'L') return 'L';
+			if(map[car->pos->y][car->pos->x-3] != 'C' && map[car->pos->y][car->pos->x-7] == 'L') return 'R';
+			break;
+		case 3: 
+			if(map[car->pos->y+3][car->pos->x] != 'C' && map[car->pos->y+7][car->pos->x] == 'L') return 'L';
+			if(map[car->pos->y-3][car->pos->x] != 'C' && map[car->pos->y-7][car->pos->x] == 'L') return 'R';
+			break;
+	}
+	return 0;
 }
 
 void cars_update(char **orig_map, char** map, char **fg_colormap, Car_t** car_list) { // interpolate steps with speed to skip steps, and this for eveyr car
@@ -426,6 +572,3 @@ void cars_update(char **orig_map, char** map, char **fg_colormap, Car_t** car_li
 		}
 	}
 }
-
-// TODO make all cars go
-// fix aligment problems with east and west
