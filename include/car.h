@@ -22,10 +22,13 @@ struct Car {
 	int status;
 	int animation_step;
 	int is_totalled; // Boolean for collisions
+	Car_t* prev_car;
 	Car_t* next_car;
 };
 
 void car_debug(Car_t* car);
+
+int car_ahead(char **map, Car_t* car);
 
 // Struct for body or just char array 
 char* car_load_body(char* body_filepath);
@@ -49,7 +52,7 @@ void car_move(Car_t* car);
 
 void car_commit(char** map, char** fg_colormap, Car_t* car);
 void car_remove(char** orig_map, char** map, char** fg_colormap, Car_t* car);
-void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car);
+void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car, Car_t** car_list);
 void cars_update(char **orig_map, char** map, char **fg_colormap, Car_t** car_list);
 
 //void car_refresh_maps(old map, new map); // TODO

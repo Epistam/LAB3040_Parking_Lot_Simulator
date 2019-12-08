@@ -70,9 +70,13 @@ Car_t* car_init(int orientation, Vect_2di_t* pos, int speed, int color, Car_t** 
 	// Add to car_list
 	if(*car_list == NULL) { // If car_list is null, then the current car becomes the first link of the chain
 		*car_list = car;
+		car->prev_car = NULL;
 	} else { // If not, we parse through all of the chain to attach it to the last link
 		Car_t* car_buf = *car_list;
-		while(car_buf->next_car != NULL) car_buf = car_buf->next_car;
+		while(car_buf->next_car != NULL) {
+			car_buf = car_buf->next_car;
+		}
+		car->prev_car = car_buf;
 		car_buf->next_car = car;
 	}
 
@@ -119,9 +123,12 @@ void car_debug(Car_t* car) {
 	fprintf(fd, "\tSpeed : %d\n", car->speed);
 	fprintf(fd, "\tColor : %d\n", car->color);
 	fprintf(fd, "\tTime in parking : %d\n", car->elapsed_time);
+	fprintf(fd, "\tPrevious car ID : ");
+	if(car->prev_car == NULL) fprintf(fd, "NULL\n");
+	else fprintf(fd, "\t%d\n", car->prev_car->id);
 	fprintf(fd, "\tNext car ID : ");
 	if(car->next_car == NULL) fprintf(fd, "NULL\n");
-	else fprintf(fd, "\t%d", car->next_car->id);
+	else fprintf(fd, "\t%d\n", car->next_car->id);
 
 	fclose(fd);
 }
@@ -231,19 +238,75 @@ void car_remove(char** orig_map, char** map, char** fg_colormap, Car_t* car) { /
 	}
 }
 
-void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car) { // Single atomic step for a single car
+int car_ahead(char **map, Car_t* car) {
+	char fwd_cell;
+	int lin,col;
+
+
+	switch(car->orientation) {
+		case 0: 
+			for(lin = 0 ; lin < CAR_LENGTH ; lin++) {
+				for(col = 0 ; col < CAR_WIDTH + 2 ; col++) {
+					fwd_cell = map[lin+car->pos->y - 5][col+car->pos->x - 2];
+
+					if(fwd_cell == 'C' || fwd_cell == '0') return 1;
+				}
+			}
+
+			break;
+		case 1: 
+			for(lin = 0 ; lin < CAR_WIDTH + 2 ; lin++) {
+				for(col = 0 ; col < CAR_LENGTH ; col++) {
+					fwd_cell = map[lin+car->pos->y - 2][col+car->pos->x + 3];
+					if(fwd_cell == 'C' || fwd_cell == '0') return 1;
+				}
+			}
+			break;
+		case 2: 
+
+			for(lin = 0 ; lin < CAR_LENGTH ; lin++) {
+				for(col = 0 ; col < CAR_WIDTH + 2; col++) {
+					fwd_cell = map[lin+car->pos->y + 3][col+car->pos->x - 2];
+					if(fwd_cell == 'C' || fwd_cell == '0') return 1;
+				}
+			}
+
+			break;
+
+		case 3: 
+			for(lin = 0 ; lin < CAR_WIDTH + 2 ; lin++) { 
+				for(col = 0 ; col < CAR_LENGTH ; col++) {
+					fwd_cell = map[lin+car->pos->y - 2][col+car->pos->x - 5];
+					if(fwd_cell == 'C' || fwd_cell == '0') return 1;
+				}
+			}
+			break;
+	}
+
+	return 0;
+}
+
+void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car, Car_t** car_list) { // Single atomic step for a single car
 	// Start out by removing the old car
 	car_remove(orig_map, map, fg_colormap, car); 
 
 	// TODO handle intersections and disappearances (rabouter la liste dans ce cas)
 	// TODO fucked up map oreintation
 	char current_cell;
+	char fwd_cell;
 	switch(car->orientation) {
 		case 0: 
 			current_cell = orig_map[car->pos->y-1][car->pos->x];
+			// Check for turns
 			if(current_cell == 'W') car->orientation = 3;
 			if(current_cell == 'E') car->orientation = 1;
 			car->pos->y -= 1; // Keep going no matter what, but depending on next cell, orientation might change
+			if(car->orientation == 1) car->pos->x += 1;
+			if(car->orientation == 3) car->pos->x -= 1;
+
+			// Check ahead to avoid collisions
+			if(car_ahead(map, car)) car->speed = 0;
+			else car->speed = 1;
 
 			break;
 		case 1: 
@@ -251,24 +314,49 @@ void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car) { // 
 			if(current_cell == 'N') car->orientation = 0;
 			if(current_cell == 'S') car->orientation = 2;
 			car->pos->x += 1;
+			if(car->orientation == 0) car->pos->y -= 1;
+			if(car->orientation == 2) car->pos->y += 1;
+
+			// Check ahead to avoid collisions
+			if(car_ahead(map, car)) car->speed = 0;
+			else car->speed = 1;
+
 			break;
 		case 2: 
 			current_cell = orig_map[car->pos->y+1][car->pos->x];
 			if(current_cell == 'E') car->orientation = 1;
 			if(current_cell == 'W') car->orientation = 3;
 			car->pos->y += 1;
+			if(car->orientation == 1) car->pos->x += 1;
+			if(car->orientation == 3) car->pos->x -= 1;
+
+			// Check ahead to avoid collisions
+			if(car_ahead(map, car)) car->speed = 0;
+			else car->speed = 1;
+
 			break;
 		case 3: 
-			current_cell = orig_map[car->pos->y][car->pos->x-1];
+			current_cell = map[car->pos->y][car->pos->x-1];
 			if(current_cell == 'S') car->orientation = 2;
 			if(current_cell == 'N') car->orientation = 0;
 			car->pos->x -= 1;
+			if(car->orientation == 0) car->pos->y -= 1;
+			if(car->orientation == 2) car->pos->y += 1;
+
+			// Check ahead to avoid collisions
+			if(car_ahead(map, car)) car->speed = 0;
+			else car->speed = 1;
+
 			break;
+		default: 
+			current_cell = 0; // Leave me alone gcc :'(
 	}
-	if(current_cell == 'X') {
+
+	// Handling special cells
+	if(current_cell == 'X' || current_cell == 'Y') { // Divergence and convergence
 		// Create a list of available options
 		int i=0;
-		char* available_options = malloc(5*sizeof(char));
+		char* available_options = malloc(3*sizeof(char)); // On ne peut pas avoir plus de 3 chemins partant d'un noeud
 		if(orig_map[car->pos->y-1][car->pos->x] == 'N') {
 			available_options[i] = 'N';
 			i++;
@@ -285,18 +373,40 @@ void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car) { // 
 			available_options[i] = 'W';
 			i++;
 		}
-		available_options[i] = '\0';
 
 		// Choose a random direction among available ones
 		char choice = available_options[rand()%i];
-		if(choice == 'N') car->orientation = 0;
-		if(choice == 'E') car->orientation = 1;
-		if(choice == 'S') car->orientation = 2;
-		if(choice == 'W') car->orientation = 3;
+		if(choice == 'N') {
+			if(car->orientation != 0) car->pos->y -= 1;
+			car->orientation = 0;
+		}
+		if(choice == 'E') {
+			if(car->orientation != 1) car->pos->x += 1;
+			car->orientation = 1;
+		}
+		if(choice == 'S') {
+			if(car->orientation != 2) car->pos->y += 1;
+			car->orientation = 2;
+		}
+		if(choice == 'W') {
+			if(car->orientation != 3) car->pos->x -= 1;
+			car->orientation = 3;
+		}
 	}
-	car->elapsed_time++;
 
-	car_commit(map, fg_colormap, car);
+
+
+	if(current_cell != 'Q') car_commit(map, fg_colormap, car);
+	else {
+		if(car->prev_car == NULL && car->next_car == NULL) *car_list = NULL; // If car is the first and last car in the list
+		else if(car->prev_car == NULL && car->next_car != NULL) *car_list = car->next_car;
+		else if(car->prev_car != NULL && car->next_car == NULL) car->prev_car->next_car = NULL;
+		else {
+				car->prev_car->next_car = car->next_car;
+				car->next_car->prev_car = car->prev_car;
+		}
+		car = NULL;
+	}
 }
 
 void cars_update(char **orig_map, char** map, char **fg_colormap, Car_t** car_list) { // interpolate steps with speed to skip steps, and this for eveyr car
@@ -304,15 +414,13 @@ void cars_update(char **orig_map, char** map, char **fg_colormap, Car_t** car_li
 		Car_t *current_car = *car_list; 
 		
 		int i;
-		while(current_car->next_car != NULL) {
+		while(current_car != NULL) {
 			// Skip as many steps as speed, and update the car itself and its location in the map
-			car_debug(current_car);
-			for(i = 0 ; i < current_car->speed ; i++) car_step(orig_map, map, fg_colormap, current_car); 
-			current_car = current_car->next_car;
+			current_car->elapsed_time++;
+			if(!car_ahead(map, current_car)) current_car->speed = 1;
+			for(i = 0 ; i < current_car->speed ; i++) car_step(orig_map, map, fg_colormap, current_car, car_list); 
+			if(current_car != NULL) current_car = current_car->next_car;
 		}
-		// Last car with next_car == NULL
-		car_debug(current_car);
-		for(i = 0 ; i < current_car->speed ; i++) car_step(orig_map, map, fg_colormap, current_car); 
 	}
 }
 
