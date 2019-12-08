@@ -399,7 +399,10 @@ void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car, Car_t
 	if(current_cell != 'Q') car_commit(map, fg_colormap, car);
 	else {
 		if(car->prev_car == NULL && car->next_car == NULL) *car_list = NULL; // If car is the first and last car in the list
-		else if(car->prev_car == NULL && car->next_car != NULL) *car_list = car->next_car;
+		else if(car->prev_car == NULL && car->next_car != NULL) {
+			*car_list = car->next_car;
+			car->next_car->prev_car = NULL;
+		}
 		else if(car->prev_car != NULL && car->next_car == NULL) car->prev_car->next_car = NULL;
 		else {
 				car->prev_car->next_car = car->next_car;
