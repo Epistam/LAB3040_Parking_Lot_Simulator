@@ -27,6 +27,9 @@ int parking_loop() { // Event loop : returns a code depending on how it was exit
 	term_clear();
 	winsize_t ws;
 
+	// Random generator intialization
+	srand(time(NULL));
+
 	// Select handling
 	fd_set set; // FD set for select to listen on
 	sigset_t sig_mask; // Signal mask, required argument, wdgaf whatsoever tho

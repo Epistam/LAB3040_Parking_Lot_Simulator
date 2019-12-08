@@ -237,34 +237,66 @@ void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car) { // 
 
 	// TODO handle intersections and disappearances (rabouter la liste dans ce cas)
 	// TODO fucked up map oreintation
-	char next_orr;
+	char current_cell;
 	switch(car->orientation) {
 		case 0: 
-			if((next_orr = orig_map[car->pos->y-1][car->pos->x]) == 'W') car->orientation = 3;
-			if((next_orr = orig_map[car->pos->y-1][car->pos->x]) == 'E') car->orientation = 1;
+			current_cell = orig_map[car->pos->y-1][car->pos->x];
+			if(current_cell == 'W') car->orientation = 3;
+			if(current_cell == 'E') car->orientation = 1;
 			car->pos->y -= 1; // Keep going no matter what, but depending on next cell, orientation might change
+
 			break;
 		case 1: 
-			if((next_orr = orig_map[car->pos->y][car->pos->x+1]) == 'N') car->orientation = 0;
-			if((next_orr = orig_map[car->pos->y][car->pos->x+1]) == 'S') car->orientation = 2;
+			current_cell = orig_map[car->pos->y][car->pos->x+1];
+			if(current_cell == 'N') car->orientation = 0;
+			if(current_cell == 'S') car->orientation = 2;
 			car->pos->x += 1;
 			break;
 		case 2: 
-			if((next_orr = orig_map[car->pos->y+1][car->pos->x]) == 'E') car->orientation = 1;
-			if((next_orr = orig_map[car->pos->y+1][car->pos->x]) == 'W') car->orientation = 3;
+			current_cell = orig_map[car->pos->y+1][car->pos->x];
+			if(current_cell == 'E') car->orientation = 1;
+			if(current_cell == 'W') car->orientation = 3;
 			car->pos->y += 1;
 			break;
 		case 3: 
-			if((next_orr = orig_map[car->pos->y][car->pos->x-1]) == 'S') car->orientation = 2;
-			if((next_orr = orig_map[car->pos->y][car->pos->x-1]) == 'N') car->orientation = 0;
+			current_cell = orig_map[car->pos->y][car->pos->x-1];
+			if(current_cell == 'S') car->orientation = 2;
+			if(current_cell == 'N') car->orientation = 0;
 			car->pos->x -= 1;
 			break;
 	}
+	if(current_cell == 'X') {
+		// Create a list of available options
+		int i=0;
+		char* available_options = malloc(5*sizeof(char));
+		if(orig_map[car->pos->y-1][car->pos->x] == 'N') {
+			available_options[i] = 'N';
+			i++;
+		}
+		if(orig_map[car->pos->y][car->pos->x+1] == 'E') {
+			available_options[i] = 'E';
+			i++;
+		}
+		if(orig_map[car->pos->y+1][car->pos->x] == 'S') {
+			available_options[i] = 'S';
+			i++;
+		}
+		if(orig_map[car->pos->y][car->pos->x-1] == 'W') {
+			available_options[i] = 'W';
+			i++;
+		}
+		available_options[i] = '\0';
 
+		// Choose a random direction among available ones
+		char choice = available_options[rand()%i];
+		if(choice == 'N') car->orientation = 0;
+		if(choice == 'E') car->orientation = 1;
+		if(choice == 'S') car->orientation = 2;
+		if(choice == 'W') car->orientation = 3;
+	}
 	car->elapsed_time++;
 
 	car_commit(map, fg_colormap, car);
-	
 }
 
 void cars_update(char **orig_map, char** map, char **fg_colormap, Car_t** car_list) { // interpolate steps with speed to skip steps, and this for eveyr car
