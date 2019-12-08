@@ -27,6 +27,7 @@ struct Car {
 };
 
 void car_park(char** map, Car_t* car);
+void car_unpark(char **map, char** orig_map, Car_t* car);
 
 char car_wheretopark(char **map, Car_t* car);
 

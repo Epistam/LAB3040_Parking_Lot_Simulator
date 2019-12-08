@@ -13,4 +13,6 @@
 #define FPS_MIN 1.0
 #define FPS_MAX 60
 
+#define UNPARK_CHANCE 50
+
 #endif

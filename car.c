@@ -463,9 +463,8 @@ void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car, Car_t
 				car->orientation = 3;
 			}
 		}
-
-		// Engage parking animation
-		if(orig_map[car->pos->y][car->pos->x] == 'P' && (car->park_target = car_wheretopark(map, car)) != 0) {
+		// Engage parking animation (only if seeking parking and there are available slots)
+		if(car->status != 4 && orig_map[car->pos->y][car->pos->x] == 'P' && (car->park_target = car_wheretopark(map, car)) != 0) {
 			car->status = 1;
 			car->animation_step = 0;
 			// place C barrier (not even necessary in the end)
@@ -474,6 +473,8 @@ void car_step(char **orig_map, char **map, char **fg_colormap, Car_t* car, Car_t
 
 	// Car parking once engaged in aniamtion
 	if(car->status == 1) car_park(map, car);
+	if(car->status == 2) if(!(rand()%UNPARK_CHANCE)) car->status = 3; 
+	if(car->status == 3) car_unpark(map, orig_map, car);
 	
 	// Car getting out (must be last)
 	if(current_cell != 'Q') car_commit(map, fg_colormap, car);
@@ -532,6 +533,73 @@ void car_park(char **map, Car_t* car) {
 		}
 		car->animation_step += 1;
 
+}
+void car_unpark(char **map, char** orig_map, Car_t* car) {
+	char departure_direction = 0;
+	switch(car->animation_step) {
+		case 0:
+			if(!car_ahead(map, car)) {
+				car_goahead(car);
+				car->animation_step = 1;
+			}
+			break;
+		case 1:
+			if(!car_ahead(map, car)) {
+				car_goahead(car);
+				car->animation_step = 2;
+			}
+			break;
+		case 2:
+			car_goahead(car);
+			break;
+		case 3:
+			car_goahead(car);
+			break;
+		case 4:
+			car_goahead(car);
+			break;
+		case 5:
+			car_goahead(car);
+			break;
+		case 6:
+			switch(car->orientation) {
+				case 0: 
+					departure_direction = orig_map[car->pos->y][car->pos->x-1];
+					printf("AAAA : %c\n",departure_direction);
+					break;
+				case 1: 
+					departure_direction = orig_map[car->pos->y-1][car->pos->x];
+					break;
+				case 2: 
+					departure_direction = orig_map[car->pos->y][car->pos->x+1];
+					break;
+				case 3: 
+					departure_direction = orig_map[car->pos->y+1][car->pos->x];
+					break;
+			}
+			switch(departure_direction) {
+				case 'N':
+					car->orientation = 0;
+					break;
+				case 'E':
+					car->orientation = 1;
+					break;
+				case 'S':
+					car->orientation = 2;
+					break;
+				case 'W':
+					car->orientation = 3;
+					break;
+			}
+			car_goahead(car);
+			break; 
+		case 7:
+			car_goahead(car);
+			car->animation_step = 0;
+			car->status = 4;
+			break;
+	}
+	if(car->animation_step > 1) car->animation_step += 1; // step 0 and 1 are used to wait until the way is clear
 }
 
 char car_wheretopark(char** map, Car_t* car) {
