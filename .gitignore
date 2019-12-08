@@ -8,3 +8,4 @@ a.out
 *.bak
 parking
 parking.log
+*.log
